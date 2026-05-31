@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriTrack Pro</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-top">
+                <h1 class="app-title">
+                    <i class="fas fa-fire"></i> NutriTrack Pro
+                </h1>
+                <button class="btn-settings" onclick="openSettings()">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+            
+            <!-- Macros Progress -->
+            <section class="macros-section">
+                <div class="macro-card calories">
+                    <div class="macro-icon">
+                        <i class="fas fa-fire-flame-curved"></i>
+                    </div>
+                    <div class="macro-info">
+                        <div class="macro-label">Calorías</div>
+                        <div class="macro-value">
+                            <span id="totalCalories">0</span> / <span id="caloriesGoal">2000</span> kcal
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="caloriesProgress"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="macros-row">
+                    <div class="macro-card protein">
+                        <div class="macro-icon">
+                            <i class="fas fa-drumstick-bite"></i>
+                        </div>
+                        <div class="macro-info">
+                            <div class="macro-label">Proteínas</div>
+                            <div class="macro-value">
+                                <span id="totalProtein">0</span> / <span id="proteinGoal">150</span>g
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="proteinProgress"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="macro-card carbs">
+                        <div class="macro-icon">
+                            <i class="fas fa-bread-slice"></i>
+                        </div>
+                        <div class="macro-info">
+                            <div class="macro-label">Carbos</div>
+                            <div class="macro-value">
+                                <span id="totalCarbs">0</span> / <span id="carbsGoal">250</span>g
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="carbsProgress"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="macro-card fats">
+                        <div class="macro-icon">
+                            <i class="fas fa-droplet"></i>
+                        </div>
+                        <div class="macro-info">
+                            <div class="macro-label">Grasas</div>
+                            <div class="macro-value">
+                                <span id="totalFats">0</span> / <span id="fatsGoal">65</span>g
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="fatsProgress"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </header>
+
+        <!-- Add Meal Section -->
+        <section class="add-meal-section">
+            <div class="section-header">
+                <h2><i class="fas fa-plus-circle"></i> Agregar Plato</h2>
+            </div>
+            
+            <div class="meal-input-methods">
+                <button class="btn-camera" onclick="openCamera()">
+                    <i class="fas fa-camera"></i>
+                    <span>Cámara</span>
+                </button>
+                <button class="btn-upload" onclick="document.getElementById('photoInput').click()">
+                    <i class="fas fa-image"></i>
+                    <span>Subir Foto</span>
+                </button>
+                <input type="file" id="photoInput" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(event)">
+            </div>
+            
+            <div id="photoPreview" class="photo-preview" style="display: none;">
+                <img id="previewImage" src="" alt="Vista previa">
+                <button class="btn-remove-photo" onclick="removePhoto()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <button class="btn-analyze-photo" onclick="analyzePhotoFromButton()">
+                    <i class="fas fa-microscope"></i> Analizar
+                </button>
+            </div>
+            
+            <div id="loadingMessage" class="loading-message" style="display: none;">
+                <i class="fas fa-spinner fa-spin"></i> Analizando plato...
+            </div>
+            
+            <form id="mealForm">
+                <div class="form-group">
+                    <label for="mealName">Nombre del plato</label>
+                    <input 
+                        type="text" 
+                        id="mealName" 
+                        placeholder="Ej: Lomo saltado" 
+                        autocomplete="off"
+                    >
+                    <button type="button" class="btn-analyze-text" onclick="analyzeTextFromInput()">
+                        <i class="fas fa-microscope"></i> Analizar
+                    </button>
+                    <div class="suggestions" id="suggestions"></div>
+                </div>
+                
+                <div class="macros-input">
+                    <div class="form-group">
+                        <label for="mealCalories">Calorías (kcal)</label>
+                        <input 
+                            type="number" 
+                            id="mealCalories" 
+                            placeholder="0" 
+                            min="0"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="mealProtein">Proteínas (g)</label>
+                        <input 
+                            type="number" 
+                            id="mealProtein" 
+                            placeholder="0" 
+                            min="0"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="mealCarbs">Carbos (g)</label>
+                        <input 
+                            type="number" 
+                            id="mealCarbs" 
+                            placeholder="0" 
+                            min="0"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="mealFats">Grasas (g)</label>
+                        <input 
+                            type="number" 
+                            id="mealFats" 
+                            placeholder="0" 
+                            min="0"
+                        >
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-add">
+                    <i class="fas fa-plus"></i> Agregar Plato
+                </button>
+            </form>
+        </section>
+
+        <!-- Meals List -->
+        <section class="meals-section">
+            <div class="section-header">
+                <h2><i class="fas fa-utensils"></i> Platos de Hoy</h2>
+                <button class="btn-clear-all" onclick="clearAllMeals()">
+                    <i class="fas fa-trash"></i> Limpiar
+                </button>
+            </div>
+            
+            <ul id="mealsList" class="meals-list">
+                <!-- Los platos se agregarán aquí dinámicamente -->
+            </ul>
+            
+            <div id="emptyMessage" class="empty-message">
+                <i class="fas fa-plate-wheat"></i>
+                <p>No hay platos agregados hoy</p>
+                <p class="empty-sub">Usa la cámara o escribe el nombre de un plato peruano</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-cog"></i> Configurar Metas</h2>
+                <button class="btn-close" onclick="closeSettings()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="goalCalories">Meta de Calorías (kcal)</label>
+                    <input type="number" id="goalCalories" value="2000" min="1000">
+                </div>
+                <div class="form-group">
+                    <label for="goalProtein">Meta de Proteínas (g)</label>
+                    <input type="number" id="goalProtein" value="150" min="50">
+                </div>
+                <div class="form-group">
+                    <label for="goalCarbs">Meta de Carbohidratos (g)</label>
+                    <input type="number" id="goalCarbs" value="250" min="50">
+                </div>
+                <div class="form-group">
+                    <label for="goalFats">Meta de Grasas (g)</label>
+                    <input type="number" id="goalFats" value="65" min="20">
+                </div>
+                <button class="btn-save" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> Guardar Metas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Modal -->
+    <div id="analysisModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-microscope"></i> Análisis IA</h2>
+                <button class="btn-close" onclick="closeAnalysis()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="analysisResult" class="analysis-result">
+                    <!-- Resultado del análisis -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
