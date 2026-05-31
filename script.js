@@ -1,5 +1,5 @@
 // Configuración de Google Gemini API
-const GEMINI_API_KEY = 'AQ.Ab8RN6KbDUyF8af3VvqShtm12qzr_O-IhHhLZVDBEQsT6z4dPA';
+const GEMINI_API_KEY = 'AQ.Ab8RN6K8JAva6f4YOG0H86MB5pQxYuiaVNHF7Wb4IMmYRE600w';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 // Base de datos de platos peruanos con macros (fallback)
@@ -68,6 +68,17 @@ let dailyGoals = {
 let currentPhoto = null;
 let detectedMeal = null;
 let isAnalyzing = false;
+
+// Función para resetear isAnalyzing si se queda atascado
+function resetAnalyzingState() {
+    if (isAnalyzing) {
+        console.warn('Reseteando isAnalyzing manualmente - posible estado atascado');
+        isAnalyzing = false;
+    }
+}
+
+// Resetear estado cada 30 segundos como medida de seguridad
+setInterval(resetAnalyzingState, 30000);
 
 // Elementos del DOM
 const mealForm = document.getElementById('mealForm');
@@ -238,7 +249,10 @@ function handlePhotoUpload(event) {
 
 // Analizar foto con Google Gemini API
 async function analyzePhoto() {
-    if (isAnalyzing) return;
+    if (isAnalyzing) {
+        console.log('Ya hay un análisis en progreso, por favor espera...');
+        return;
+    }
     isAnalyzing = true;
     
     try {
@@ -273,6 +287,7 @@ async function analyzePhoto() {
         };
         
         console.log('Enviando solicitud a Gemini API con imagen...');
+        console.log('Request body:', JSON.stringify(requestBody, null, 2));
         
         const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
             method: 'POST',
@@ -282,16 +297,23 @@ async function analyzePhoto() {
             body: JSON.stringify(requestBody)
         });
         
+        console.log('Status de respuesta:', response.status);
+        
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Error en la respuesta de la API:', response.status, errorText);
+            console.error('Error completo de la API:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText,
+                headers: Object.fromEntries(response.headers.entries())
+            });
             
             // Manejar específicamente error 429 (Too Many Requests)
             if (response.status === 429) {
                 throw new Error('429');
             }
             
-            throw new Error(`Error en la respuesta de la API: ${response.status}`);
+            throw new Error(`Error en la respuesta de la API: ${response.status} - ${errorText}`);
         }
         
         const data = await response.json();
@@ -327,7 +349,8 @@ async function analyzePhoto() {
         showAnalysisModal(detectedMeal, 95); // 95% de confianza para Gemini
         
     } catch (error) {
-        console.error('Error al analizar con Gemini:', error);
+        console.error('Error completo al analizar con Gemini:', error);
+        console.error('Stack trace:', error.stack);
         
         // Manejar específicamente error 429
         if (error.message === '429') {
@@ -337,12 +360,15 @@ async function analyzePhoto() {
         }
         
     } finally {
+        console.log('Reseteando isAnalyzing a false');
         isAnalyzing = false;
     }
 }
 
 // Función wrapper para analizar foto desde el botón (con mensaje de carga)
 async function analyzePhotoFromButton() {
+    console.log('Usuario hizo clic en botón Analizar para foto');
+    
     const loadingMessage = document.getElementById('loadingMessage');
     loadingMessage.style.display = 'block';
     
@@ -353,7 +379,10 @@ async function analyzePhotoFromButton() {
 
 // Analizar texto con Google Gemini API
 async function analyzeText(text) {
-    if (isAnalyzing) return null;
+    if (isAnalyzing) {
+        console.log('Ya hay un análisis en progreso, por favor espera...');
+        return null;
+    }
     isAnalyzing = true;
     
     try {
@@ -370,6 +399,7 @@ async function analyzeText(text) {
         };
         
         console.log('Enviando solicitud a Gemini API con texto:', text);
+        console.log('Request body:', JSON.stringify(requestBody, null, 2));
         
         const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
             method: 'POST',
@@ -379,16 +409,23 @@ async function analyzeText(text) {
             body: JSON.stringify(requestBody)
         });
         
+        console.log('Status de respuesta:', response.status);
+        
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Error en la respuesta de la API:', response.status, errorText);
+            console.error('Error completo de la API:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: errorText,
+                headers: Object.fromEntries(response.headers.entries())
+            });
             
             // Manejar específicamente error 429 (Too Many Requests)
             if (response.status === 429) {
                 throw new Error('429');
             }
             
-            throw new Error(`Error en la respuesta de la API: ${response.status}`);
+            throw new Error(`Error en la respuesta de la API: ${response.status} - ${errorText}`);
         }
         
         const data = await response.json();
@@ -422,7 +459,8 @@ async function analyzeText(text) {
         return result;
         
     } catch (error) {
-        console.error('Error al analizar texto con Gemini:', error);
+        console.error('Error completo al analizar texto con Gemini:', error);
+        console.error('Stack trace:', error.stack);
         
         // Manejar específicamente error 429
         if (error.message === '429') {
@@ -433,6 +471,7 @@ async function analyzeText(text) {
         
         return null;
     } finally {
+        console.log('Reseteando isAnalyzing a false');
         isAnalyzing = false;
     }
 }
@@ -444,6 +483,8 @@ async function analyzeTextFromInput() {
         alert('Por favor, escribe el nombre de un plato para analizar.');
         return;
     }
+    
+    console.log('Usuario hizo clic en botón Analizar para texto:', text);
     
     const loadingMessage = document.getElementById('loadingMessage');
     loadingMessage.style.display = 'block';
