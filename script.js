@@ -1,6 +1,5 @@
 // Configuración de Google Gemini API
-const GEMINI_API_KEY = 'AQ.Ab8RN6K8JAva6f4YOG0H86MB5pQxYuiaVNHF7Wb4IMmYRE600w';const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-
+const GEMINI_API_KEY = 'AQ.Ab8RN6J20fGMqpnQAxcE7n_Xyw5kdTuJV830-u6QHHh-gsthiw';
 // Base de datos de platos peruanos con macros (fallback)
 const peruvianDishes = [
     { name: "Pollo a la brasa", calories: 350, protein: 35, carbs: 0, fats: 20 },
@@ -384,6 +383,7 @@ async function analyzeText(text) {
     }
     isAnalyzing = true;
     
+    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
     try {
         const prompt = `Analiza este plato de comida: "${text}". Devuelve única y estrictamente un objeto JSON con esta estructura: {"nombre": "Nombre del plato", "calorias": 0, "proteinas": 0, "carbos": 0, "grasas": 0}. No agregues texto extra ni bloques de código markdown, solo el JSON. Estima los valores nutricionales basándote en porciones típicas.`;
         
