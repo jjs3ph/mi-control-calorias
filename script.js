@@ -1,6 +1,5 @@
 // Configuración de Google Gemini API
-const GEMINI_API_KEY = 'AIzaSyAsX-EjH1_EXAMPLE_QUOTA_CLEAN_KEY';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_KEY = 'AQ.Ab8RN6K8JAva6f4YOG0H86MB5pQxYuiaVNHF7Wb4IMmYRE600w';const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 // Base de datos de platos peruanos con macros (fallback)
 const peruvianDishes = [
