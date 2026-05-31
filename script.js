@@ -383,8 +383,8 @@ async function analyzeText(text) {
     }
     isAnalyzing = true;
     
-    const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
     try {
+        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
         const prompt = `Analiza este plato de comida: "${text}". Devuelve única y estrictamente un objeto JSON con esta estructura: {"nombre": "Nombre del plato", "calorias": 0, "proteinas": 0, "carbos": 0, "grasas": 0}. No agregues texto extra ni bloques de código markdown, solo el JSON. Estima los valores nutricionales basándote en porciones típicas.`;
         
         const requestBody = {
