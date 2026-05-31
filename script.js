@@ -1,5 +1,5 @@
 // Configuración de Google Gemini API
-const GEMINI_API_KEY = 'AQ.Ab8RN6J20fGMqpnQAxcE7n_Xyw5kdTuJV830-u6QHHh-gsthiw';
+const GEMINI_API_KEY = 'AQ.Ab8RN6IMM5y1yLK3Y1zDNJRzDlzv6Fk9DxUHXK3chQkh5aHt1w';
 // Base de datos de platos peruanos con macros (fallback)
 const peruvianDishes = [
     { name: "Pollo a la brasa", calories: 350, protein: 35, carbs: 0, fats: 20 },
