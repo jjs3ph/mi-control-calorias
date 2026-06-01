@@ -1,12 +1,12 @@
-// Configuración de Google Gemini API
-// Función para obtener la API key desde localStorage o pedir al usuario
-function getGeminiApiKey() {
-    let apiKey = localStorage.getItem('GEMINI_API_KEY');
+// Configuración de API
+// Función para obtener la API key de OpenRouter desde localStorage o pedir al usuario
+function getOpenRouterApiKey() {
+    let apiKey = localStorage.getItem('OPENROUTER_API_KEY');
     
     if (!apiKey) {
-        apiKey = prompt('Por favor, introduce tu API Key de Google Gemini para analizar platos:');
+        apiKey = prompt('Introduce tu API Key de OpenRouter:');
         if (apiKey && apiKey.trim()) {
-            localStorage.setItem('GEMINI_API_KEY', apiKey.trim());
+            localStorage.setItem('OPENROUTER_API_KEY', apiKey.trim());
         } else {
             alert('Se requiere una API Key válida para usar la función de análisis.');
             return null;
@@ -398,7 +398,7 @@ async function analyzePhotoFromButton() {
     loadingMessage.style.display = 'none';
 }
 
-// Analizar texto con Google Gemini API
+// Analizar texto con OpenRouter API
 async function analyzeText(text) {
     if (isAnalyzing) {
         console.log('Ya hay un análisis en progreso, por favor espera...');
@@ -407,32 +407,33 @@ async function analyzeText(text) {
     isAnalyzing = true;
     
     try {
-        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
-        const GEMINI_API_KEY = getGeminiApiKey();
+        const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+        const OPENROUTER_API_KEY = getOpenRouterApiKey();
         
-        if (!GEMINI_API_KEY) {
-            throw new Error('No se pudo obtener la API Key de Gemini');
+        if (!OPENROUTER_API_KEY) {
+            throw new Error('No se pudo obtener la API Key de OpenRouter');
         }
         
         const prompt = `Analiza este plato de comida: "${text}". Devuelve única y estrictamente un objeto JSON con esta estructura: {"nombre": "Nombre del plato", "calorias": 0, "proteinas": 0, "carbos": 0, "grasas": 0}. No agregues texto extra ni bloques de código markdown, solo el JSON. Estima los valores nutricionales basándote en porciones típicas.`;
         
         const requestBody = {
-            contents: [{
-                parts: [
-                    {
-                        text: prompt
-                    }
-                ]
-            }]
+            model: "google/gemini-2.5-flash",
+            messages: [
+                {
+                    role: "user",
+                    content: prompt
+                }
+            ]
         };
         
-        console.log('Enviando solicitud a Gemini API con texto:', text);
+        console.log('Enviando solicitud a OpenRouter API con texto:', text);
         console.log('Request body:', JSON.stringify(requestBody, null, 2));
         
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(OPENROUTER_API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`
             },
             body: JSON.stringify(requestBody)
         });
@@ -457,14 +458,14 @@ async function analyzeText(text) {
         }
         
         const data = await response.json();
-        console.log('Respuesta de Gemini:', data);
+        console.log('Respuesta de OpenRouter:', data);
         
-        // Extraer el JSON de la respuesta
-        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+        // Extraer el JSON de la respuesta usando el formato de OpenAI/OpenRouter
+        if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
             throw new Error('Estructura de respuesta inválida');
         }
         
-        let jsonText = data.candidates[0].content.parts[0].text;
+        let jsonText = data.choices[0].message.content;
         
         // Limpiar el texto para obtener solo el JSON
         jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -487,14 +488,14 @@ async function analyzeText(text) {
         return result;
         
     } catch (error) {
-        console.error('Error completo al analizar texto con Gemini:', error);
+        console.error('Error completo al analizar texto con OpenRouter:', error);
         console.error('Stack trace:', error.stack);
         
         // Manejar específicamente error 429
         if (error.message === '429') {
             alert('Espera un momento antes de analizar otro plato. Has alcanzado el límite de solicitudes.');
         } else {
-            alert('Error al analizar el texto con Gemini: ' + error.message + '. Por favor, intenta nuevamente o ingresa los datos manualmente.');
+            alert('Error al analizar el texto con OpenRouter: ' + error.message + '. Por favor, intenta nuevamente o ingresa los datos manualmente.');
         }
         
         return null;
