@@ -423,7 +423,8 @@ async function analyzeText(text) {
                     role: "user",
                     content: prompt
                 }
-            ]
+            ],
+            max_tokens: 1000
         };
         
         console.log('Enviando solicitud a OpenRouter API con texto:', text);
