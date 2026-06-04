@@ -261,7 +261,7 @@ function handlePhotoUpload(event) {
     }
 }
 
-// Analizar foto con Google Gemini API
+// Analizar foto con OpenRouter API
 async function analyzePhoto() {
     if (isAnalyzing) {
         console.log('Ya hay un análisis en progreso, por favor espera...');
@@ -270,50 +270,42 @@ async function analyzePhoto() {
     isAnalyzing = true;
     
     try {
-        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
-        const GEMINI_API_KEY = getGeminiApiKey();
+        const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+        const OPENROUTER_API_KEY = getOpenRouterApiKey();
         
-        if (!GEMINI_API_KEY) {
-            throw new Error('No se pudo obtener la API Key de Gemini');
+        if (!OPENROUTER_API_KEY) {
+            throw new Error('No se pudo obtener la API Key de OpenRouter');
         }
         
-        // Convertir la imagen a base64 limpio (sin el encabezado data:image/...;base64,)
-        let imageBase64 = currentPhoto;
-        if (currentPhoto && currentPhoto.startsWith('data:image')) {
-            // Extraer solo los datos base64 después de la coma
-            imageBase64 = currentPhoto.split(',')[1];
-        }
-        
-        if (!imageBase64) {
-            throw new Error('No se pudo obtener la imagen en base64');
+        if (!currentPhoto) {
+            throw new Error('No se pudo obtener la imagen');
         }
         
         const prompt = 'Analiza esta comida. Devuelve única y estrictamente un objeto JSON con esta estructura: {"nombre": "Nombre del plato", "calorias": 0, "proteinas": 0, "carbos": 0, "grasas": 0}. No agregues texto extra ni bloques de código markdown, solo el JSON.';
         
-        // Estructura correcta para Gemini API con InlineData
+        // Estructura para OpenRouter API con formato multimedial
         const requestBody = {
-            contents: [{
-                parts: [
-                    {
-                        text: prompt
-                    },
-                    {
-                        inline_data: {
-                            mime_type: 'image/jpeg',
-                            data: imageBase64
-                        }
-                    }
-                ]
-            }]
+            model: "google/gemini-2.5-flash",
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        { type: "text", text: prompt },
+                        { type: "image_url", image_url: { url: currentPhoto } }
+                    ]
+                }
+            ],
+            max_tokens: 1000
         };
         
-        console.log('Enviando solicitud a Gemini API con imagen...');
+        console.log('Enviando solicitud a OpenRouter API con imagen...');
         console.log('Request body:', JSON.stringify(requestBody, null, 2));
         
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(OPENROUTER_API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENROUTER_API_KEY}`
             },
             body: JSON.stringify(requestBody)
         });
@@ -338,14 +330,14 @@ async function analyzePhoto() {
         }
         
         const data = await response.json();
-        console.log('Respuesta de Gemini:', data);
+        console.log('Respuesta de OpenRouter:', data);
         
-        // Extraer el JSON de la respuesta
-        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+        // Extraer el JSON de la respuesta usando el formato de OpenAI/OpenRouter
+        if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
             throw new Error('Estructura de respuesta inválida');
         }
         
-        let jsonText = data.candidates[0].content.parts[0].text;
+        let jsonText = data.choices[0].message.content;
         
         // Limpiar el texto para obtener solo el JSON
         jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -370,14 +362,14 @@ async function analyzePhoto() {
         showAnalysisModal(detectedMeal, 95); // 95% de confianza para Gemini
         
     } catch (error) {
-        console.error('Error completo al analizar con Gemini:', error);
+        console.error('Error completo al analizar con OpenRouter:', error);
         console.error('Stack trace:', error.stack);
         
         // Manejar específicamente error 429
         if (error.message === '429') {
             alert('Espera un momento antes de analizar otro plato. Has alcanzado el límite de solicitudes.');
         } else {
-            alert('Error al analizar la imagen con Gemini: ' + error.message + '. Por favor, intenta nuevamente o ingresa los datos manualmente.');
+            alert('Error al analizar la imagen con OpenRouter: ' + error.message + '. Por favor, intenta nuevamente o ingresa los datos manualmente.');
         }
         
     } finally {
